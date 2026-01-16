@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>兒童英語單字卡</title>
+<style>
+  body {
+    font-family: "Arial Rounded MT Bold", "Helvetica Rounded", "Microsoft JhengHei", sans-serif;
+    background-color: #FFF5E1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; margin: 0; padding: 10px; box-sizing: border-box;
+  }
+
+  h1 { color: #FF6B6B; margin: 10px 0 20px 0; text-shadow: 2px 2px 0px #fff; text-align: center; font-size: 1.8rem; }
+
+  /* 卡片場景 */
+  .scene {
+    width: 320px; height: 420px;
+    perspective: 1000px; cursor: pointer;
+    margin-bottom: 20px; position: relative; z-index: 1;
+  }
+
+  .card {
+    width: 100%; height: 100%; position: relative;
+    transition: transform 0.6s; transform-style: preserve-3d;
+    border-radius: 30px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  }
+
+  .card.is-flipped { transform: rotateY(180deg); }
+
+  .card__face {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border-radius: 30px; border: 8px solid #fff;
+    box-sizing: border-box; background-color: white;
+    padding: 10px;
+  }
+
+  /* 正面 (英文) */
+  .card__face--front {
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    color: #333; transform: rotateY(0deg);
+  }
+
+  /* 背面 (中文) */
+  .card__face--back {
+    background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%);
+    color: #333; transform: rotateY(180deg);
+  }
+
+  /* 內容樣式 */
+  .emoji-img { font-size: 90px; margin-bottom: 15px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); }
+  .word-en { font-size: 42px; font-weight: 800; color: #333; margin-bottom: 5px; text-align: center; line-height: 1.1; word-break: break-word; }
+  .word-zh { font-size: 50px; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); text-align: center;}
+  
+  /* 喇叭按鈕 */
+  .voice-btn {
+    background-color: #fff; border: none; border-radius: 50%;
+    width: 55px; height: 55px; font-size: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    margin-top: 15px; transition: transform 0.1s; color: #2196F3;
+  }
+  .voice-btn:active { transform: scale(0.9); background-color: #eee; }
+
+  /* 控制區 */
+  .controls {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 500px;
+  }
+
+  button.ctrl-btn {
+    padding: 12px 20px; font-size: 18px; border: none;
+    border-radius: 50px; color: white; cursor: pointer;
+    box-shadow: 0 4px 0px rgba(0,0,0,0.1); 
+    font-family: inherit; font-weight: bold; flex: 1; min-width: 80px;
+    transition: transform 0.1s;
+  }
+  button.ctrl-btn:active { transform: translateY(3px); box-shadow: none; }
+  
+  .prev-btn { background-color: #FF9A9E; }
+  .rand-btn { background-color: #FFD700; color: #795548 !important; }
+  .next-btn { background-color: #4facfe; }
+  .list-btn { background-color: #9c27b0; flex: 100%; margin-top: 5px; }
+
+  .category-tag {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(255,255,255,0.7); padding: 4px 10px;
+    border-radius: 12px; font-size: 14px; font-weight: bold; color: #555;
+  }
+
+  .counter { margin-top: 10px; color: #888; font-weight: bold; font-size: 14px; }
+
+  /* 彈出清單視窗 */
+  .modal {
+    display: none; position: fixed; z-index: 999; left: 0; top: 0;
+    width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);
+    align-items: center; justify-content: center;
+  }
+  
+  .modal-content {
+    background-color: white; width: 90%; max-width: 600px; height: 85%;
+    border-radius: 15px; display: flex; flex-direction: column;
+    overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  }
+
+  .modal-header {
+    padding: 15px; background: #9c27b0; color: white;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 1.2rem; font-weight: bold;
+  }
+
+  .close-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
+
+  /* 清單列表樣式 */
+  .modal-body {
+    padding: 10px; overflow-y: auto; flex: 1;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px;
+  }
+
+  .list-item {
+    background: #f8f9fa; padding: 10px 5px; border-radius: 8px;
+    text-align: center; cursor: pointer; font-size: 14px;
+    border: 1px solid #eee; transition: background 0.2s;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .list-item:hover { background: #e1bee7; border-color: #ba68c8; }
+  .list-item .li-emoji { font-size: 20px; margin-bottom: 2px; }
+  .list-item .li-en { font-weight: bold; color: #333; }
+  .list-item .li-zh { font-size: 12px; color: #666; }
+
+</style>
+</head>
+<body>
+
+  <h1>中英文字卡</h1>
+
+  <div class="scene" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="card__face card__face--front">
+        <div class="category-tag" id="catTag">Category</div>
+        <div class="emoji-img" id="cardEmoji">🍎</div>
+        <div class="word-en" id="wordEn">Apple</div>
+        <button class="voice-btn" onclick="playAudio(event)">🔊</button>
+      </div>
+      <div class="card__face card__face--back">
+        <div class="emoji-img" id="cardEmojiBack">🍎</div>
+        <div class="word-zh" id="wordZh">蘋果</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="counter" id="counterDisplay">1 / 500</div>
+
+  <div class="controls">
+    <button class="ctrl-btn prev-btn" onclick="prevCard(event)">◀ 上一個</button>
+    <button class="ctrl-btn rand-btn" onclick="randomCard(event)">🎲 隨機</button>
+    <button class="ctrl-btn next-btn" onclick="nextCard(event)">下一個 ▶</button>
+    <button class="ctrl-btn list-btn" onclick="toggleList()">📜 查看全部清單</button>
+  </div>
+
+  <div id="listModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>單字列表 (共 500 個)</span>
+        <button class="close-btn" onclick="toggleList()">×</button>
+      </div>
+      <div class="modal-body" id="listContainer"></div>
+    </div>
+  </div>
+
+<script>
+  // 500個單字庫 (盡量壓縮格式以放入代碼)
+  // 分類: 動物, 食物, 家人, 身體, 顏色, 數字, 自然, 學校, 地點, 動作, 感覺, 衣物, 交通, 家裡, 時間, 形狀, 職業, 形容詞
+  const vocabulary = [
+    // --- 1. 動物 (Animals) ---
+    {e:"Dog", z:"狗", i:"🐶", c:"動物"}, {e:"Cat", z:"貓", i:"🐱", c:"動物"}, {e:"Rabbit", z:"兔子", i:"🐰", c:"動物"}, {e:"Bear", z:"熊", i:"🐻", c:"動物"},
+    {e:"Elephant", z:"大象", i:"🐘", c:"動物"}, {e:"Lion", z:"獅子", i:"🦁", c:"動物"}, {e:"Tiger", z:"老虎", i:"🐯", c:"動物"}, {e:"Monkey", z:"猴子", i:"🐵", c:"動物"},
+    {e:"Pig", z:"豬", i:"🐷", c:"動物"}, {e:"Cow", z:"乳牛", i:"🐮", c:"動物"}, {e:"Sheep", z:"綿羊", i:"🐑", c:"動物"}, {e:"Duck", z:"鴨子", i:"🦆", c:"動物"},
+    {e:"Chicken", z:"雞", i:"🐔", c:"動物"}, {e:"Horse", z:"馬", i:"🐴", c:"動物"}, {e:"Fish", z:"魚", i:"🐟", c:"動物"}, {e:"Bird", z:"鳥", i:"🐦", c:"動物"},
+    {e:"Turtle", z:"烏龜", i:"🐢", c:"動物"}, {e:"Snake", z:"蛇", i:"🐍", c:"動物"}, {e:"Panda", z:"熊貓", i:"🐼", c:"動物"}, {e:"Frog", z:"青蛙", i:"🐸", c:"動物"},
+    {e:"Bee", z:"蜜蜂", i:"🐝", c:"動物"}, {e:"Butterfly", z:"蝴蝶", i:"🦋", c:"動物"}, {e:"Dinosaur", z:"恐龍", i:"🦖", c:"動物"}, {e:"Whale", z:"鯨魚", i:"🐳", c:"動物"},
+    {e:"Shark", z:"鯊魚", i:"🦈", c:"動物"}, {e:"Mouse", z:"老鼠", i:"🐭", c:"動物"}, {e:"Giraffe", z:"長頸鹿", i:"🦒", c:"動物"}, {e:"Zebra", z:"斑馬", i:"🦓", c:"動物"},
+    {e:"Fox", z:"狐狸", i:"🦊", c:"動物"}, {e:"Wolf", z:"狼", i:"🐺", c:"動物"}, {e:"Deer", z:"鹿", i:"🦌", c:"動物"}, {e:"Koala", z:"無尾熊", i:"🐨", c:"動物"},
+    {e:"Bat", z:"蝙蝠", i:"🦇", c:"動物"}, {e:"Owl", z:"貓頭鷹", i:"🦉", c:"動物"}, {e:"Crocodile", z:"鱷魚", i:"🐊", c:"動物"}, {e:"Dolphin", z:"海豚", i:"🐬", c:"動物"},
+    {e:"Octopus", z:"章魚", i:"🐙", c:"動物"}, {e:"Crab", z:"螃蟹", i:"🦀", c:"動物"}, {e:"Shrimp", z:"蝦子", i:"🦐", c:"動物"}, {e:"Squid", z:"魷魚", i:"🦑", c:"動物"},
+    {e:"Snail", z:"蝸牛", i:"🐌", c:"動物"}, {e:"Ant", z:"螞蟻", i:"🐜", c:"動物"}, {e:"Spider", z:"蜘蛛", i:"🕷️", c:"動物"}, {e:"Ladybug", z:"瓢蟲", i:"🐞", c:"動物"},
+    {e:"Goat", z:"山羊", i:"🐐", c:"動物"}, {e:"Camel", z:"駱駝", i:"🐫", c:"動物"}, {e:"Gorilla", z:"大猩猩", i:"🦍", c:"動物"}, {e:"Kangaroo", z:"袋鼠", i:"🦘", c:"動物"},
+    {e:"Penguin", z:"企鵝", i:"🐧", c:"動物"}, {e:"Hippo", z:"河馬", i:"🦛", c:"動物"}, {e:"Rhino", z:"犀牛", i:"🦏", c:"動物"}, {e:"Swan", z:"天鵝", i:"🦢", c:"動物"},
+
+    // --- 2. 食物 (Food) ---
+    {e:"Apple", z:"蘋果", i:"🍎", c:"食物"}, {e:"Banana", z:"香蕉", i:"🍌", c:"食物"}, {e:"Orange", z:"柳橙", i:"🍊", c:"食物"}, {e:"Grape", z:"葡萄", i:"🍇", c:"食物"},
+    {e:"Strawberry", z:"草莓", i:"🍓", c:"食物"}, {e:"Watermelon", z:"西瓜", i:"🍉", c:"食物"}, {e:"Lemon", z:"檸檬", i:"🍋", c:"食物"}, {e:"Peach", z:"桃子", i:"🍑", c:"食物"},
+    {e:"Pineapple", z:"鳳梨", i:"🍍", c:"食物"}, {e:"Cherry", z:"櫻桃", i:"🍒", c:"食物"}, {e:"Tomato", z:"番茄", i:"🍅", c:"食物"}, {e:"Carrot", z:"紅蘿蔔", i:"🥕", c:"食物"},
+    {e:"Corn", z:"玉米", i:"🌽", c:"食物"}, {e:"Bread", z:"麵包", i:"🍞", c:"食物"}, {e:"Rice", z:"飯", i:"🍚", c:"食物"}, {e:"Noodles", z:"麵", i:"🍜", c:"食物"},
+    {e:"Egg", z:"蛋", i:"🥚", c:"食物"}, {e:"Milk", z:"牛奶", i:"🥛", c:"食物"}, {e:"Water", z:"水", i:"💧", c:"食物"}, {e:"Juice", z:"果汁", i:"🧃", c:"食物"},
+    {e:"Ice Cream", z:"冰淇淋", i:"🍦", c:"食物"}, {e:"Cake", z:"蛋糕", i:"🍰", c:"食物"}, {e:"Cookie", z:"餅乾", i:"🍪", c:"食物"}, {e:"Candy", z:"糖果", i:"🍬", c:"食物"},
+    {e:"Chocolate", z:"巧克力", i:"🍫", c:"食物"}, {e:"Hamburger", z:"漢堡", i:"🍔", c:"食物"}, {e:"Pizza", z:"披薩", i:"🍕", c:"食物"}, {e:"French Fries", z:"薯條", i:"🍟", c:"食物"},
+    {e:"Sandwich", z:"三明治", i:"🥪", c:"食物"}, {e:"Hot Dog", z:"熱狗", i:"🌭", c:"食物"}, {e:"Popcorn", z:"爆米花", i:"🍿", c:"食物"}, {e:"Donut", z:"甜甜圈", i:"🍩", c:"食物"},
+    {e:"Cheese", z:"起司", i:"🧀", c:"食物"}, {e:"Meat", z:"肉", i:"🥩", c:"食物"}, {e:"Fish", z:"魚肉", i:"🐟", c:"食物"}, {e:"Soup", z:"湯", i:"🥣", c:"食物"},
+    {e:"Salad", z:"沙拉", i:"🥗", c:"食物"}, {e:"Potato", z:"馬鈴薯", i:"🥔", c:"食物"}, {e:"Onion", z:"洋蔥", i:"🧅", c:"食物"}, {e:"Garlic", z:"大蒜", i:"🧄", c:"食物"},
+    {e:"Mushroom", z:"蘑菇", i:"🍄", c:"食物"}, {e:"Mango", z:"芒果", i:"🥭", c:"食物"}, {e:"Pear", z:"梨子", i:"🍐", c:"食物"}, {e:"Kiwi", z:"奇異果", i:"🥝", c:"食物"},
+    {e:"Coconut", z:"椰子", i:"🥥", c:"食物"}, {e:"Tea", z:"茶", i:"🍵", c:"食物"}, {e:"Coffee", z:"咖啡", i:"☕", c:"食物"}, {e:"Soda", z:"汽水", i:"🥤", c:"食物"},
+    {e:"Honey", z:"蜂蜜", i:"🍯", c:"食物"}, {e:"Butter", z:"奶油", i:"🧈", c:"食物"},
+
+    // --- 3. 交通 (Transportation) ---
+    {e:"Car", z:"汽車", i:"🚗", c:"交通"}, {e:"Bus", z:"公車", i:"🚌", c:"交通"}, {e:"Train", z:"火車", i:"🚂", c:"交通"}, {e:"Airplane", z:"飛機", i:"✈️", c:"交通"},
+    {e:"Bike", z:"腳踏車", i:"🚲", c:"交通"}, {e:"Boat", z:"船", i:"🚢", c:"交通"}, {e:"Subway", z:"捷運", i:"🚇", c:"交通"}, {e:"Taxi", z:"計程車", i:"🚕", c:"交通"},
+    {e:"Truck", z:"卡車", i:"🚚", c:"交通"}, {e:"Motorcycle", z:"摩托車", i:"🏍️", c:"交通"}, {e:"Helicopter", z:"直升機", i:"🚁", c:"交通"}, {e:"Rocket", z:"火箭", i:"🚀", c:"交通"},
+    {e:"Ambulance", z:"救護車", i:"🚑", c:"交通"}, {e:"Fire Truck", z:"消防車", i:"🚒", c:"交通"}, {e:"Police Car", z:"警車", i:"🚓", c:"交通"}, {e:"Scooter", z:"滑板車", i:"🛴", c:"交通"},
+    {e:"Ship", z:"輪船", i:"🛳️", c:"交通"}, {e:"Tractor", z:"拖拉機", i:"🚜", c:"交通"}, {e:"Van", z:"廂型車", i:"🚐", c:"交通"}, {e:"Jeep", z:"吉普車", i:"🚙", c:"交通"},
+
+    // --- 4. 學校與物品 (School) ---
+    {e:"Book", z:"書", i:"📖", c:"學校"}, {e:"Pen", z:"原子筆", i:"🖊️", c:"學校"}, {e:"Pencil", z:"鉛筆", i:"✏️", c:"學校"}, {e:"Bag", z:"書包", i:"🎒", c:"學校"},
+    {e:"Desk", z:"書桌", i:"🛋️", c:"學校"}, {e:"Chair", z:"椅子", i:"🪑", c:"學校"}, {e:"Computer", z:"電腦", i:"💻", c:"學校"}, {e:"Notebook", z:"筆記本", i:"📓", c:"學校"},
+    {e:"Eraser", z:"橡皮擦", i:"🧱", c:"學校"}, {e:"Ruler", z:"尺", i:"📏", c:"學校"}, {e:"Scissors", z:"剪刀", i:"✂️", c:"學校"}, {e:"Glue", z:"膠水", i:"🧴", c:"學校"},
+    {e:"Crayon", z:"蠟筆", i:"🖍️", c:"學校"}, {e:"Paper", z:"紙", i:"📄", c:"學校"}, {e:"Map", z:"地圖", i:"🗺️", c:"學校"}, {e:"Globe", z:"地球儀", i:"🌍", c:"學校"},
+    {e:"Blackboard", z:"黑板", i:"🧑‍🏫", c:"學校"}, {e:"School Bus", z:"校車", i:"🚌", c:"學校"}, {e:"Calculator", z:"計算機", i:"🧮", c:"學校"}, {e:"Backpack", z:"背包", i:"🎒", c:"學校"},
+    {e:"Paint", z:"顏料", i:"🎨", c:"學校"}, {e:"Brush", z:"畫筆", i:"🖌️", c:"學校"}, {e:"Test", z:"考試", i:"📝", c:"學校"}, {e:"Homework", z:"作業", i:"📚", c:"學校"},
+    {e:"Student", z:"學生", i:"👨‍🎓", c:"學校"}, {e:"Classroom", z:"教室", i:"🏫", c:"學校"},
+
+    // --- 5. 家裡與生活 (Home) ---
+    {e:"Home", z:"家", i:"🏠", c:"家裡"}, {e:"Bed", z:"床", i:"🛏️", c:"家裡"}, {e:"Sofa", z:"沙發", i:"🛋️", c:"家裡"}, {e:"TV", z:"電視", i:"📺", c:"家裡"},
+    {e:"Lamp", z:"檯燈", i:"💡", c:"家裡"}, {e:"Table", z:"桌子", i:"🔲", c:"家裡"}, {e:"Door", z:"門", i:"🚪", c:"家裡"}, {e:"Window", z:"窗戶", i:"🪟", c:"家裡"},
+    {e:"Key", z:"鑰匙", i:"🔑", c:"家裡"}, {e:"Box", z:"箱子", i:"📦", c:"家裡"}, {e:"Clock", z:"時鐘", i:"⏰", c:"家裡"}, {e:"Phone", z:"電話", i:"☎️", c:"家裡"},
+    {e:"Mobile Phone", z:"手機", i:"📱", c:"家裡"}, {e:"Camera", z:"相機", i:"📷", c:"家裡"}, {e:"Battery", z:"電池", i:"🔋", c:"家裡"}, {e:"Trash Can", z:"垃圾桶", i:"🗑️", c:"家裡"},
+    {e:"Mirror", z:"鏡子", i:"🪞", c:"家裡"}, {e:"Toothbrush", z:"牙刷", i:"🪥", c:"家裡"}, {e:"Soap", z:"肥皂", i:"🧼", c:"家裡"}, {e:"Towel", z:"毛巾", i:"🧖", c:"家裡"},
+    {e:"Toilet", z:"馬桶", i:"🚽", c:"家裡"}, {e:"Bathtub", z:"浴缸", i:"🛁", c:"家裡"}, {e:"Shower", z:"蓮蓬頭", i:"🚿", c:"家裡"}, {e:"Broom", z:"掃把", i:"🧹", c:"家裡"},
+    {e:"Pot", z:"鍋子", i:"🥘", c:"家裡"}, {e:"Pan", z:"平底鍋", i:"🍳", c:"家裡"}, {e:"Knife", z:"刀子", i:"🔪", c:"家裡"}, {e:"Fork", z:"叉子", i:"🍴", c:"家裡"},
+    {e:"Spoon", z:"湯匙", i:"🥄", c:"家裡"}, {e:"Chopsticks", z:"筷子", i:"🥢", c:"家裡"}, {e:"Cup", z:"杯子", i:"🥛", c:"家裡"}, {e:"Plate", z:"盤子", i:"🍽️", c:"家裡"},
+    {e:"Fridge", z:"冰箱", i:"🧊", c:"家裡"}, {e:"Pillow", z:"枕頭", i:"🛌", c:"家裡"}, {e:"Blanket", z:"毯子", i:"🧣", c:"家裡"},
+
+    // --- 6. 自然與天氣 (Nature) ---
+    {e:"Sun", z:"太陽", i:"☀️", c:"自然"}, {e:"Moon", z:"月亮", i:"🌙", c:"自然"}, {e:"Star", z:"星星", i:"⭐", c:"自然"}, {e:"Cloud", z:"雲", i:"☁️", c:"自然"},
+    {e:"Rain", z:"雨", i:"🌧️", c:"自然"}, {e:"Snow", z:"雪", i:"❄️", c:"自然"}, {e:"Wind", z:"風", i:"💨", c:"自然"}, {e:"Tree", z:"樹", i:"🌳", c:"自然"},
+    {e:"Flower", z:"花", i:"🌸", c:"自然"}, {e:"Grass", z:"草", i:"🌿", c:"自然"}, {e:"Mountain", z:"山", i:"⛰️", c:"自然"}, {e:"Sea", z:"大海", i:"🌊", c:"自然"},
+    {e:"Fire", z:"火", i:"🔥", c:"自然"}, {e:"Rainbow", z:"彩虹", i:"🌈", c:"自然"}, {e:"Leaf", z:"葉子", i:"🍃", c:"自然"}, {e:"Stone", z:"石頭", i:"🪨", c:"自然"},
+    {e:"Sand", z:"沙子", i:"🏖️", c:"自然"}, {e:"Earth", z:"地球", i:"🌎", c:"自然"}, {e:"Sky", z:"天空", i:"🌌", c:"自然"}, {e:"River", z:"河流", i:"🏞️", c:"自然"},
+    {e:"Lightning", z:"閃電", i:"⚡", c:"自然"}, {e:"Storm", z:"暴風雨", i:"⛈️", c:"自然"}, {e:"Umbrella", z:"雨傘", i:"☂️", c:"自然"}, {e:"Forest", z:"森林", i:"🌲", c:"自然"},
+
+    // --- 7. 身體 (Body) ---
+    {e:"Head", z:"頭", i:"🙆", c:"身體"}, {e:"Eye", z:"眼睛", i:"👁️", c:"身體"}, {e:"Ear", z:"耳朵", i:"👂", c:"身體"}, {e:"Nose", z:"鼻子", i:"👃", c:"身體"},
+    {e:"Mouth", z:"嘴巴", i:"👄", c:"身體"}, {e:"Tooth", z:"牙齒", i:"🦷", c:"身體"}, {e:"Hand", z:"手", i:"✋", c:"身體"}, {e:"Foot", z:"腳", i:"🦶", c:"身體"},
+    {e:"Arm", z:"手臂", i:"💪", c:"身體"}, {e:"Leg", z:"腿", i:"🦵", c:"身體"}, {e:"Hair", z:"頭髮", i:"💇", c:"身體"}, {e:"Face", z:"臉", i:"😀", c:"身體"},
+    {e:"Finger", z:"手指", i:"👆", c:"身體"}, {e:"Thumb", z:"大拇指", i:"👍", c:"身體"}, {e:"Tongue", z:"舌頭", i:"👅", c:"身體"}, {e:"Lips", z:"嘴唇", i:"💋", c:"身體"},
+    {e:"Heart", z:"心臟", i:"🫀", c:"身體"}, {e:"Brain", z:"大腦", i:"🧠", c:"身體"}, {e:"Bone", z:"骨頭", i:"🦴", c:"身體"}, {e:"Shoulder", z:"肩膀", i:"🤷", c:"身體"},
+    {e:"Knee", z:"膝蓋", i:"🦵", c:"身體"}, {e:"Toe", z:"腳趾", i:"🦶", c:"身體"},
+
+    // --- 8. 家人與人 (People) ---
+    {e:"Family", z:"家庭", i:"👨‍👩‍👧", c:"人物"}, {e:"Father", z:"爸爸", i:"👨", c:"人物"}, {e:"Mother", z:"媽媽", i:"👩", c:"人物"}, {e:"Brother", z:"兄弟", i:"👦", c:"人物"},
+    {e:"Sister", z:"姊妹", i:"👧", c:"人物"}, {e:"Baby", z:"嬰兒", i:"👶", c:"人物"}, {e:"Grandpa", z:"爺爺/外公", i:"👴", c:"人物"}, {e:"Grandma", z:"奶奶/外婆", i:"👵", c:"人物"},
+    {e:"Boy", z:"男孩", i:"👦", c:"人物"}, {e:"Girl", z:"女孩", i:"👧", c:"人物"}, {e:"Man", z:"男人", i:"👨", c:"人物"}, {e:"Woman", z:"女人", i:"👩", c:"人物"},
+    {e:"Friend", z:"朋友", i:"🤝", c:"人物"}, {e:"Person", z:"人", i:"👤", c:"人物"}, {e:"Me", z:"我", i:"🙋", c:"人物"}, {e:"You", z:"你", i:"🫵", c:"人物"},
+    {e:"Uncle", z:"叔叔/伯伯", i:"👨", c:"人物"}, {e:"Aunt", z:"阿姨/姑姑", i:"👩", c:"人物"}, {e:"Cousin", z:"堂表兄弟姊妹", i:"🧒", c:"人物"},
+
+    // --- 9. 職業 (Jobs) ---
+    {e:"Teacher", z:"老師", i:"🧑‍🏫", c:"職業"}, {e:"Doctor", z:"醫生", i:"👨‍⚕️", c:"職業"}, {e:"Nurse", z:"護士", i:"👩‍⚕️", c:"職業"}, {e:"Police", z:"警察", i:"👮", c:"職業"},
+    {e:"Firefighter", z:"消防員", i:"👨‍🚒", c:"職業"}, {e:"Cook", z:"廚師", i:"👨‍🍳", c:"職業"}, {e:"Farmer", z:"農夫", i:"👨‍🌾", c:"職業"}, {e:"Artist", z:"畫家", i:"🎨", c:"職業"},
+    {e:"Singer", z:"歌手", i:"🎤", c:"職業"}, {e:"Dancer", z:"舞者", i:"💃", c:"職業"}, {e:"Driver", z:"司機", i:"🚌", c:"職業"}, {e:"Pilot", z:"飛行員", i:"✈️", c:"職業"},
+    {e:"Worker", z:"工人", i:"👷", c:"職業"}, {e:"Scientist", z:"科學家", i:"🧪", c:"職業"}, {e:"Soldier", z:"軍人", i:"💂", c:"職業"}, {e:"King", z:"國王", i:"🤴", c:"職業"},
+    {e:"Queen", z:"皇后", i:"👸", c:"職業"}, {e:"Prince", z:"王子", i:"🤴", c:"職業"}, {e:"Princess", z:"公主", i:"👸", c:"職業"}, {e:"Astronaut", z:"太空人", i:"🧑‍🚀", c:"職業"},
+
+    // --- 10. 顏色 (Colors) ---
+    {e:"Red", z:"紅色", i:"🔴", c:"顏色"}, {e:"Blue", z:"藍色", i:"🔵", c:"顏色"}, {e:"Yellow", z:"黃色", i:"🟡", c:"顏色"}, {e:"Green", z:"綠色", i:"🟢", c:"顏色"},
+    {e:"Orange", z:"橘色", i:"🟠", c:"顏色"}, {e:"Purple", z:"紫色", i:"🟣", c:"顏色"}, {e:"Black", z:"黑色", i:"⚫", c:"顏色"}, {e:"White", z:"白色", i:"⚪", c:"顏色"},
+    {e:"Pink", z:"粉紅色", i:"💗", c:"顏色"}, {e:"Brown", z:"咖啡色", i:"🟤", c:"顏色"}, {e:"Grey", z:"灰色", i:"🌫️", c:"顏色"}, {e:"Gold", z:"金色", i:"🥇", c:"顏色"},
+    {e:"Silver", z:"銀色", i:"🥈", c:"顏色"},
+
+    // --- 11. 數字 (Numbers) ---
+    {e:"One", z:"一", i:"1️⃣", c:"數字"}, {e:"Two", z:"二", i:"2️⃣", c:"數字"}, {e:"Three", z:"三", i:"3️⃣", c:"數字"}, {e:"Four", z:"四", i:"4️⃣", c:"數字"},
+    {e:"Five", z:"五", i:"5️⃣", c:"數字"}, {e:"Six", z:"六", i:"6️⃣", c:"數字"}, {e:"Seven", z:"七", i:"7️⃣", c:"數字"}, {e:"Eight", z:"八", i:"8️⃣", c:"數字"},
+    {e:"Nine", z:"九", i:"9️⃣", c:"數字"}, {e:"Ten", z:"十", i:"🔟", c:"數字"}, {e:"Zero", z:"零", i:"0️⃣", c:"數字"}, {e:"Eleven", z:"十一", i:"1️⃣1️⃣", c:"數字"},
+    {e:"Twelve", z:"十二", i:"1️⃣2️⃣", c:"數字"}, {e:"Twenty", z:"二十", i:"2️⃣0️⃣", c:"數字"}, {e:"Thirty", z:"三十", i:"3️⃣0️⃣", c:"數字"}, {e:"Hundred", z:"一百", i:"💯", c:"數字"},
+
+    // --- 12. 形狀 (Shapes) ---
+    {e:"Circle", z:"圓形", i:"⭕", c:"形狀"}, {e:"Square", z:"正方形", i:"🟥", c:"形狀"}, {e:"Triangle", z:"三角形", i:"🔺", c:"形狀"}, {e:"Star", z:"星形", i:"⭐", c:"形狀"},
+    {e:"Heart", z:"愛心", i:"❤️", c:"形狀"}, {e:"Diamond", z:"鑽石形", i:"🔶", c:"形狀"}, {e:"Cross", z:"十字", i:"➕", c:"形狀"}, {e:"Line", z:"線", i:"➖", c:"形狀"},
+
+    // --- 13. 衣物 (Clothing) ---
+    {e:"T-shirt", z:"T恤", i:"👕", c:"衣物"}, {e:"Pants", z:"褲子", i:"👖", c:"衣物"}, {e:"Dress", z:"洋裝", i:"👗", c:"衣物"}, {e:"Skirt", z:"裙子", i:"👘", c:"衣物"},
+    {e:"Shoes", z:"鞋子", i:"👟", c:"衣物"}, {e:"Socks", z:"襪子", i:"🧦", c:"衣物"}, {e:"Hat", z:"帽子", i:"🧢", c:"衣物"}, {e:"Coat", z:"外套", i:"🧥", c:"衣物"},
+    {e:"Glasses", z:"眼鏡", i:"👓", c:"衣物"}, {e:"Watch", z:"手錶", i:"⌚", c:"衣物"}, {e:"Ring", z:"戒指", i:"💍", c:"衣物"}, {e:"Bag", z:"包包", i:"👜", c:"衣物"},
+    {e:"Umbrella", z:"雨傘", i:"☂️", c:"衣物"}, {e:"Scarf", z:"圍巾", i:"🧣", c:"衣物"}, {e:"Gloves", z:"手套", i:"🧤", c:"衣物"}, {e:"Boot", z:"靴子", i:"👢", c:"衣物"},
+    {e:"Swimsuit", z:"泳衣", i:"🩱", c:"衣物"}, {e:"Belt", z:"皮帶", i:"➰", c:"衣物"}, {e:"Tie", z:"領帶", i:"👔", c:"衣物"}, {e:"Mask", z:"口罩", i:"😷", c:"衣物"},
+
+    // --- 14. 動作 (Actions) ---
+    {e:"Run", z:"跑", i:"🏃", c:"動作"}, {e:"Walk", z:"走", i:"🚶", c:"動作"}, {e:"Jump", z:"跳", i:"🦘", c:"動作"}, {e:"Sleep", z:"睡覺", i:"😴", c:"動作"},
+    {e:"Eat", z:"吃", i:"🍽️", c:"動作"}, {e:"Drink", z:"喝", i:"🥤", c:"動作"}, {e:"Read", z:"閱讀", i:"📖", c:"動作"}, {e:"Write", z:"寫字", i:"✍️", c:"動作"},
+    {e:"Sing", z:"唱歌", i:"🎤", c:"動作"}, {e:"Dance", z:"跳舞", i:"💃", c:"動作"}, {e:"Swim", z:"游泳", i:"🏊", c:"動作"}, {e:"Play", z:"玩", i:"🤹", c:"動作"},
+    {e:"Fly", z:"飛", i:"🦅", c:"動作"}, {e:"Sit", z:"坐", i:"🪑", c:"動作"}, {e:"Stand", z:"站", i:"🧍", c:"動作"}, {e:"Laugh", z:"笑", i:"😆", c:"動作"},
+    {e:"Cry", z:"哭", i:"😭", c:"動作"}, {e:"Clap", z:"拍手", i:"👏", c:"動作"}, {e:"Listen", z:"聽", i:"👂", c:"動作"}, {e:"Look", z:"看", i:"👀", c:"動作"},
+    {e:"Smell", z:"聞", i:"👃", c:"動作"}, {e:"Touch", z:"摸", i:"✋", c:"動作"}, {e:"Think", z:"想", i:"🤔", c:"動作"}, {e:"Cook", z:"煮飯", i:"🍳", c:"動作"},
+    {e:"Wash", z:"洗", i:"🧼", c:"動作"}, {e:"Drive", z:"開車", i:"🚗", c:"動作"}, {e:"Ride", z:"騎", i:"🚴", c:"動作"}, {e:"Open", z:"打開", i:"🔓", c:"動作"},
+    {e:"Close", z:"關上", i:"🔒", c:"動作"}, {e:"Cut", z:"剪/切", i:"✂️", c:"動作"}, {e:"Draw", z:"畫畫", i:"🖍️", c:"動作"}, {e:"Stop", z:"停止", i:"🛑", c:"動作"},
+    {e:"Go", z:"走/去", i:"🟢", c:"動作"}, {e:"Help", z:"幫忙", i:"🤝", c:"動作"}, {e:"Give", z:"給", i:"🤲", c:"動作"}, {e:"Take", z:"拿", i:"✊", c:"動作"},
+
+    // --- 15. 感覺 (Feelings) ---
+    {e:"Happy", z:"快樂", i:"😄", c:"感覺"}, {e:"Sad", z:"難過", i:"😢", c:"感覺"}, {e:"Angry", z:"生氣", i:"😠", c:"感覺"}, {e:"Tired", z:"累", i:"😫", c:"感覺"},
+    {e:"Hungry", z:"餓", i:"😋", c:"感覺"}, {e:"Thirsty", z:"口渴", i:"🥤", c:"感覺"}, {e:"Cold", z:"冷", i:"🥶", c:"感覺"}, {e:"Hot", z:"熱", i:"🥵", c:"感覺"},
+    {e:"Love", z:"愛", i:"❤️", c:"感覺"}, {e:"Scared", z:"害怕", i:"😱", c:"感覺"}, {e:"Surprised", z:"驚訝", i:"😲", c:"感覺"}, {e:"Sick", z:"生病", i:"🤒", c:"感覺"},
+    {e:"Sleepy", z:"想睡", i:"😪", c:"感覺"}, {e:"Bored", z:"無聊", i:"😐", c:"感覺"}, {e:"Excited", z:"興奮", i:"🤩", c:"感覺"}, {e:"Pain", z:"痛", i:"🤕", c:"感覺"},
+
+    // --- 16. 地點 (Places) ---
+    {e:"School", z:"學校", i:"🏫", c:"地點"}, {e:"Park", z:"公園", i:"⛲", c:"地點"}, {e:"Zoo", z:"動物園", i:"🦁", c:"地點"}, {e:"Hospital", z:"醫院", i:"🏥", c:"地點"},
+    {e:"Store", z:"商店", i:"🏪", c:"地點"}, {e:"Supermarket", z:"超市", i:"🛒", c:"地點"}, {e:"Restaurant", z:"餐廳", i:"🍴", c:"地點"}, {e:"Library", z:"圖書館", i:"📚", c:"地點"},
+    {e:"Airport", z:"機場", i:"✈️", c:"地點"}, {e:"Station", z:"車站", i:"🚉", c:"地點"}, {e:"Beach", z:"海邊", i:"🏖️", c:"地點"}, {e:"Farm", z:"農場", i:"🚜", c:"地點"},
+    {e:"City", z:"城市", i:"🏙️", c:"地點"}, {e:"Playground", z:"遊樂場", i:"🎠", c:"地點"}, {e:"Cinema", z:"電影院", i:"🎬", c:"地點"}, {e:"Hotel", z:"飯店", i:"🏨", c:"地點"},
+    {e:"Bank", z:"銀行", i:"🏦", c:"地點"}, {e:"Post Office", z:"郵局", i:"📮", c:"地點"}, {e:"Museum", z:"博物館", i:"🏛️", c:"地點"}, {e:"Gym", z:"體育館", i:"🏋️", c:"地點"},
+
+    // --- 17. 形容詞 (Adjectives) ---
+    {e:"Big", z:"大", i:"🐘", c:"形容詞"}, {e:"Small", z:"小", i:"🐜", c:"形容詞"}, {e:"Long", z:"長", i:"📏", c:"形容詞"}, {e:"Short", z:"短", i:"🤏", c:"形容詞"},
+    {e:"Fast", z:"快", i:"🚀", c:"形容詞"}, {e:"Slow", z:"慢", i:"🐢", c:"形容詞"}, {e:"Good", z:"好", i:"👍", c:"形容詞"}, {e:"Bad", z:"壞", i:"👎", c:"形容詞"},
+    {e:"Beautiful", z:"美麗", i:"👸", c:"形容詞"}, {e:"Cute", z:"可愛", i:"🐱", c:"形容詞"}, {e:"Clean", z:"乾淨", i:"✨", c:"形容詞"}, {e:"Dirty", z:"髒", i:"💩", c:"形容詞"},
+    {e:"New", z:"新", i:"🆕", c:"形容詞"}, {e:"Old", z:"舊/老", i:"👴", c:"形容詞"}, {e:"Strong", z:"強壯", i:"💪", c:"形容詞"}, {e:"Weak", z:"虛弱", i:"🥀", c:"形容詞"},
+    {e:"Fat", z:"胖", i:"🐷", c:"形容詞"}, {e:"Thin", z:"瘦", i:"🥢", c:"形容詞"}, {e:"Tall", z:"高", i:"🦒", c:"形容詞"}, {e:"Sweet", z:"甜", i:"🍬", c:"形容詞"},
+    {e:"Sour", z:"酸", i:"🍋", c:"形容詞"}, {e:"Spicy", z:"辣", i:"🌶️", c:"形容詞"}, {e:"Loud", z:"大聲", i:"🔊", c:"形容詞"}, {e:"Quiet", z:"安靜", i:"🤫", c:"形容詞"},
+
+    // --- 18. 時間 (Time) ---
+    {e:"Day", z:"白天", i:"☀️", c:"時間"}, {e:"Night", z:"晚上", i:"🌙", c:"時間"}, {e:"Morning", z:"早上", i:"🌅", c:"時間"}, {e:"Afternoon", z:"下午", i:"🕑", c:"時間"},
+    {e:"Evening", z:"傍晚", i:"🌆", c:"時間"}, {e:"Time", z:"時間", i:"⏳", c:"時間"}, {e:"Year", z:"年", i:"📅", c:"時間"}, {e:"Month", z:"月", i:"🗓️", c:"時間"},
+    {e:"Week", z:"週", i:"📆", c:"時間"}, {e:"Today", z:"今天", i:"👇", c:"時間"}, {e:"Tomorrow", z:"明天", i:"👉", c:"時間"}, {e:"Yesterday", z:"昨天", i:"👈", c:"時間"},
+    {e:"Birthday", z:"生日", i:"🎂", c:"時間"}, {e:"Spring", z:"春天", i:"🌱", c:"時間"}, {e:"Summer", z:"夏天", i:"☀️", c:"時間"}, {e:"Autumn", z:"秋天", i:"🍂", c:"時間"},
+    {e:"Winter", z:"冬天", i:"☃️", c:"時間"}, {e:"Now", z:"現在", i:"⏰", c:"時間"}, {e:"Wait", z:"等等", i:"✋", c:"時間"}
+  ];
+
+  let currentIndex = 0;
+  const cardElement = document.getElementById('card');
+  const wordEnEl = document.getElementById('wordEn');
+  const wordZhEl = document.getElementById('wordZh');
+  const emojiEl = document.getElementById('cardEmoji');
+  const emojiBackEl = document.getElementById('cardEmojiBack');
+  const catTagEl = document.getElementById('catTag');
+  const counterEl = document.getElementById('counterDisplay');
+  const modalElement = document.getElementById('listModal');
+  const listContainer = document.getElementById('listContainer');
+
+  initGame();
+
+  function initGame() {
+    generateList();
+    randomCard();
+  }
+
+  function flipCard() { cardElement.classList.toggle('is-flipped'); }
+
+  function updateCard() {
+    cardElement.classList.remove('is-flipped');
+    setTimeout(() => {
+      const data = vocabulary[currentIndex];
+      wordEnEl.innerText = data.e; // e: English
+      wordZhEl.innerText = data.z; // z: Chinese
+      emojiEl.innerText = data.i;  // i: Icon
+      emojiBackEl.innerText = data.i;
+      catTagEl.innerText = data.c; // c: Category
+      counterEl.innerText = `${currentIndex + 1} / ${vocabulary.length}`;
+      
+      // 自動調整字體大小，避免長單字溢出
+      wordEnEl.style.fontSize = data.e.length > 10 ? "32px" : "42px";
+    }, 200);
+  }
+
+  function nextCard(e) {
+    if(e) e.stopPropagation();
+    currentIndex++;
+    if (currentIndex >= vocabulary.length) currentIndex = 0;
+    updateCard();
+  }
+
+  function prevCard(e) {
+    if(e) e.stopPropagation();
+    currentIndex--;
+    if (currentIndex < 0) currentIndex = vocabulary.length - 1;
+    updateCard();
+  }
+
+  function randomCard(e) {
+    if(e) e.stopPropagation();
+    let newIndex;
+    do { newIndex = Math.floor(Math.random() * vocabulary.length); } while (newIndex === currentIndex);
+    currentIndex = newIndex;
+    updateCard();
+  }
+
+  function playAudio(e) {
+    if(e) e.stopPropagation();
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // 停止目前語音
+      const data = vocabulary[currentIndex];
+      const utterance = new SpeechSynthesisUtterance(data.e);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.8; 
+      utterance.pitch = 1.1; 
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("您的瀏覽器不支援發音功能");
+    }
+  }
+
+  // --- 清單功能 ---
+  function toggleList() {
+    const isHidden = modalElement.style.display === "none" || modalElement.style.display === "";
+    modalElement.style.display = isHidden ? "flex" : "none";
+  }
+
+  function selectFromList(index) {
+    currentIndex = index;
+    updateCard();
+    toggleList();
+  }
+
+  function generateList() {
+    const fragment = document.createDocumentFragment();
+    vocabulary.forEach((item, index) => {
+      const div = document.createElement('div');
+      div.className = 'list-item';
+      div.onclick = () => selectFromList(index);
+      div.innerHTML = `
+        <div class="li-emoji">${item.i}</div>
+        <div class="li-en">${item.e}</div>
+        <div class="li-zh">${item.z}</div>
+      `;
+      fragment.appendChild(div);
+    });
+    listContainer.innerHTML = '';
+    listContainer.appendChild(fragment);
+  }
+
+  window.onclick = function(event) { if (event.target == modalElement) toggleList(); }
+
+  document.addEventListener('keydown', (e) => {
+    if(modalElement.style.display === "flex") return;
+    if (e.key === 'ArrowRight') nextCard();
+    if (e.key === 'ArrowLeft') prevCard();
+    if (e.key === ' ' || e.key === 'Enter') flipCard();
+    if (e.key === 's' || e.key === 'p') playAudio();
+  });
+</script>
+
+</body>
+</html>

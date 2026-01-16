@@ -2,28 +2,46 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>兒童英語學習卡</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>兒童英語學習APP</title>
+
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png">
+<link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="英語圖卡">
+
+<meta name="theme-color" content="#FFF5E1">
+
 <style>
+  /* 防止手機雙點擊縮放，操作更像APP */
+  * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
   body {
     font-family: "Arial Rounded MT Bold", "Helvetica Rounded", "Microsoft JhengHei", sans-serif;
     background-color: #FFF5E1;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     min-height: 100vh; margin: 0; padding: 10px; box-sizing: border-box;
+    /* 避免 iPhone 劉海擋住內容 */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    overflow: hidden; /* 禁止網頁捲動 */
   }
 
-  h1 { color: #FF6B6B; margin: 5px 0 15px 0; text-shadow: 2px 2px 0px #fff; text-align: center; font-size: 1.6rem; }
+  h1 { color: #FF6B6B; margin: 5px 0 15px 0; text-shadow: 2px 2px 0px #fff; text-align: center; font-size: 1.5rem; }
 
   /* 分頁切換按鈕 */
   .tabs {
-    display: flex; gap: 10px; margin-bottom: 20px;
+    display: flex; gap: 8px; margin-bottom: 15px;
     background: white; padding: 5px; border-radius: 30px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 10;
   }
 
   .tab-btn {
-    padding: 10px 20px; border: none; background: transparent;
-    border-radius: 25px; font-size: 16px; font-weight: bold;
+    padding: 8px 16px; border: none; background: transparent;
+    border-radius: 25px; font-size: 15px; font-weight: bold;
     color: #888; cursor: pointer; transition: 0.3s;
   }
 
@@ -33,9 +51,15 @@
 
   /* 卡片場景 */
   .scene {
-    width: 340px; height: 440px;
+    width: 320px; height: 420px;
     perspective: 1000px; cursor: pointer;
-    margin-bottom: 15px; position: relative; z-index: 1;
+    margin-bottom: 10px; position: relative; z-index: 1;
+  }
+  
+  /* RWD 適應小螢幕手機 */
+  @media (max-height: 700px) {
+    .scene { width: 280px; height: 360px; }
+    h1 { font-size: 1.3rem; margin-bottom: 10px; }
   }
 
   .card {
@@ -57,24 +81,13 @@
     padding: 15px;
   }
 
-  /* 正面 (英文) */
-  .card__face--front {
-    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-    color: #333; transform: rotateY(0deg);
-  }
+  .card__face--front { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); color: #333; transform: rotateY(0deg); }
+  .card__face--back { background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%); color: #333; transform: rotateY(180deg); }
 
-  /* 背面 (中文) */
-  .card__face--back {
-    background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%);
-    color: #333; transform: rotateY(180deg);
-  }
-
-  /* 內容樣式 */
   .emoji-img { font-size: 80px; margin-bottom: 15px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2)); }
-  .word-en { font-size: 36px; font-weight: 800; color: #333; margin-bottom: 5px; text-align: center; line-height: 1.2; word-break: break-word; padding: 0 10px; }
-  .word-zh { font-size: 40px; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); text-align: center; padding: 0 10px; }
+  .word-en { font-size: 34px; font-weight: 800; color: #333; margin-bottom: 5px; text-align: center; line-height: 1.2; word-break: break-word; padding: 0 10px; }
+  .word-zh { font-size: 38px; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); text-align: center; padding: 0 10px; }
   
-  /* 喇叭按鈕 */
   .voice-btn {
     background-color: #fff; border: none; border-radius: 50%;
     width: 50px; height: 50px; font-size: 24px;
@@ -84,11 +97,7 @@
   }
   .voice-btn:active { transform: scale(0.9); background-color: #eee; }
 
-  /* 控制區 */
-  .controls {
-    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 500px; margin-bottom: 10px;
-  }
-
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 500px; margin-bottom: 10px; }
   button.ctrl-btn {
     padding: 12px 20px; font-size: 18px; border: none;
     border-radius: 50px; color: white; cursor: pointer;
@@ -101,9 +110,7 @@
   .prev-btn { background-color: #FF9A9E; }
   .rand-btn { background-color: #FFD700; color: #795548 !important; }
   .next-btn { background-color: #4facfe; }
-  
-  /* 底部清單按鈕 */
-  .list-btn-container { width: 100%; max-width: 500px; display: flex; justify-content: center; margin-top: 5px; }
+  .list-btn-container { width: 100%; max-width: 500px; display: flex; justify-content: center; margin-top: 5px; margin-bottom: 20px;}
   .list-btn { background-color: #9c27b0; width: 100%; padding: 12px; border-radius: 50px; color: white; font-weight: bold; border: none; font-size: 16px; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
   .list-btn:active { transform: translateY(3px); box-shadow: none; }
 
@@ -112,59 +119,26 @@
     background: rgba(255,255,255,0.7); padding: 4px 10px;
     border-radius: 12px; font-size: 12px; font-weight: bold; color: #555;
   }
-
-  .counter { margin-top: 5px; color: #888; font-weight: bold; font-size: 14px; margin-bottom: 15px;}
+  .counter { margin-top: 5px; color: #888; font-weight: bold; font-size: 14px; margin-bottom: 10px;}
 
   /* 彈出清單視窗 */
-  .modal {
-    display: none; position: fixed; z-index: 999; left: 0; top: 0;
-    width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);
-    align-items: center; justify-content: center;
-  }
-  
-  .modal-content {
-    background-color: white; width: 90%; max-width: 600px; height: 85%;
-    border-radius: 15px; display: flex; flex-direction: column;
-    overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  }
-
-  .modal-header {
-    padding: 15px; background: #9c27b0; color: white;
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 1.2rem; font-weight: bold;
-  }
-
+  .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+  .modal-content { background-color: white; width: 90%; max-width: 600px; height: 80%; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+  .modal-header { padding: 15px; background: #9c27b0; color: white; display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: bold; }
   .close-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; }
-
-  /* 清單列表樣式 */
-  .modal-body {
-    padding: 10px; overflow-y: auto; flex: 1;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(100%; 1fr)); gap: 8px; /* 手機版一欄 */
-  }
-  /* 平板以上改回多欄 */
-  @media(min-width: 400px) {
-    .modal-body { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
-  }
-
-  .list-item {
-    background: #f8f9fa; padding: 10px 5px; border-radius: 8px;
-    text-align: center; cursor: pointer; font-size: 14px;
-    border: 1px solid #eee; transition: background 0.2s;
-    display: flex; flex-direction: column; align-items: center;
-  }
+  .modal-body { padding: 10px; overflow-y: auto; flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)); gap: 8px; }
+  @media(min-width: 400px) { .modal-body { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); } }
+  .list-item { background: #f8f9fa; padding: 10px 5px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 14px; border: 1px solid #eee; transition: background 0.2s; display: flex; flex-direction: column; align-items: center; }
   .list-item:hover { background: #e1bee7; border-color: #ba68c8; }
   .list-item .li-emoji { font-size: 20px; margin-bottom: 2px; }
   .list-item .li-en { font-weight: bold; color: #333; }
   .list-item .li-zh { font-size: 12px; color: #666; }
 
-  /* 隱藏元素 (用於切換資料) */
-  .hidden { display: none; }
-
 </style>
 </head>
 <body>
 
-  <h1>兒童英語學習</h1>
+  <h1>兒童英語字卡</h1>
 
   <div class="tabs">
     <button class="tab-btn active" onclick="switchMode('words')">🔤 單字 (500)</button>
@@ -202,7 +176,7 @@
   <div id="listModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <span id="listTitle">單字列表</span>
+        <span id="listTitle">列表</span>
         <button class="close-btn" onclick="toggleList()">×</button>
       </div>
       <div class="modal-body" id="listContainer"></div>
@@ -210,11 +184,32 @@
   </div>
 
 <script>
-  // 資料庫：為了節省空間，使用 [英, 中, Emoji, 分類] 陣列格式
-  
-  // 1. 單字庫 (500 words)
+  // 4. 動態生成 Manifest (讓 Android 也能變成 APP)
+  const manifest = {
+    "name": "英語圖卡",
+    "short_name": "英語圖卡",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#FFF5E1",
+    "theme_color": "#FFF5E1",
+    "icons": [
+      {
+        "src": "https://cdn-icons-png.flaticon.com/512/2232/2232688.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  };
+  const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+  const manifestURL = URL.createObjectURL(manifestBlob);
+  const linkTag = document.createElement('link');
+  linkTag.rel = 'manifest';
+  linkTag.href = manifestURL;
+  document.head.appendChild(linkTag);
+
+  // --- 資料庫 (完整 500+200+200) ---
+  // 單字
   const rawWords = [
-    // 動物
     ["Dog","狗","🐶","動物"],["Cat","貓","🐱","動物"],["Rabbit","兔子","🐰","動物"],["Bear","熊","🐻","動物"],["Elephant","大象","🐘","動物"],
     ["Lion","獅子","🦁","動物"],["Tiger","老虎","🐯","動物"],["Monkey","猴子","🐵","動物"],["Pig","豬","🐷","動物"],["Cow","乳牛","🐮","動物"],
     ["Sheep","綿羊","🐑","動物"],["Duck","鴨子","🦆","動物"],["Chicken","雞","🐔","動物"],["Horse","馬","🐴","動物"],["Fish","魚","🐟","動物"],
@@ -227,8 +222,6 @@
     ["Camel","駱駝","🐫","動物"],["Gorilla","大猩猩","🦍","動物"],["Kangaroo","袋鼠","🦘","動物"],["Penguin","企鵝","🐧","動物"],["Hippo","河馬","🦛","動物"],
     ["Rhino","犀牛","🦏","動物"],["Swan","天鵝","🦢","動物"],["Eagle","老鷹","🦅","動物"],["Pigeon","鴿子","🕊️","動物"],["Peacock","孔雀","🦚","動物"],
     ["Parrot","鸚鵡","🦜","動物"],["Flamingo","紅鶴","🦩","動物"],["Hedgehog","刺蝟","🦔","動物"],["Otter","水獺","🦦","動物"],["Seal","海豹","🦭","動物"],
-    
-    // 食物
     ["Apple","蘋果","🍎","食物"],["Banana","香蕉","🍌","食物"],["Orange","柳橙","🍊","食物"],["Grape","葡萄","🍇","食物"],["Strawberry","草莓","🍓","食物"],
     ["Watermelon","西瓜","🍉","食物"],["Lemon","檸檬","🍋","食物"],["Peach","桃子","🍑","食物"],["Pineapple","鳳梨","🍍","食物"],["Cherry","櫻桃","🍒","食物"],
     ["Tomato","番茄","🍅","食物"],["Carrot","紅蘿蔔","🥕","食物"],["Corn","玉米","🌽","食物"],["Bread","麵包","🍞","食物"],["Rice","飯","🍚","食物"],
@@ -241,8 +234,6 @@
     ["Coffee","咖啡","☕","食物"],["Soda","汽水","🥤","食物"],["Honey","蜂蜜","🍯","食物"],["Butter","奶油","🧈","食物"],["Bacon","培根","🥓","食物"],
     ["Steak","牛排","🥩","食物"],["Sushi","壽司","🍣","食物"],["Dumpling","水餃","🥟","食物"],["Toast","吐司","🍞","食物"],["Jam","果醬","🍓","食物"],
     ["Pancake","鬆餅","🥞","食物"],["Avocado","酪梨","🥑","食物"],["Cucumber","小黃瓜","🥒","食物"],["Broccoli","花椰菜","🥦","食物"],["Pepper","辣椒","🌶️","食物"],
-
-    // 家人與人
     ["Family","家庭","👨‍👩‍👧","人物"],["Father","爸爸","👨","人物"],["Mother","媽媽","👩","人物"],["Brother","兄弟","👦","人物"],["Sister","姊妹","👧","人物"],
     ["Baby","嬰兒","👶","人物"],["Grandpa","爺爺/外公","👴","人物"],["Grandma","奶奶/外婆","👵","人物"],["Boy","男孩","👦","人物"],["Girl","女孩","👧","人物"],
     ["Man","男人","👨","人物"],["Woman","女人","👩","人物"],["Friend","朋友","🤝","人物"],["Person","人","👤","人物"],["Me","我","🙋","人物"],
@@ -251,42 +242,30 @@
     ["Nurse","護士","👩‍⚕️","職業"],["Police","警察","👮","職業"],["Firefighter","消防員","👨‍🚒","職業"],["Cook","廚師","👨‍🍳","職業"],["Farmer","農夫","👨‍🌾","職業"],
     ["Artist","畫家","🎨","職業"],["Singer","歌手","🎤","職業"],["Dancer","舞者","💃","職業"],["Driver","司機","🚌","職業"],["Pilot","飛行員","✈️","職業"],
     ["Worker","工人","👷","職業"],["Scientist","科學家","🧪","職業"],["Soldier","軍人","💂","職業"],["Astronaut","太空人","🧑‍🚀","職業"],["Magician","魔術師","🎩","職業"],
-
-    // 身體
     ["Head","頭","🙆","身體"],["Eye","眼睛","👁️","身體"],["Ear","耳朵","👂","身體"],["Nose","鼻子","👃","身體"],["Mouth","嘴巴","👄","身體"],
     ["Tooth","牙齒","🦷","身體"],["Hand","手","✋","身體"],["Foot","腳","🦶","身體"],["Arm","手臂","💪","身體"],["Leg","腿","🦵","身體"],
     ["Hair","頭髮","💇","身體"],["Face","臉","😀","身體"],["Finger","手指","👆","身體"],["Thumb","大拇指","👍","身體"],["Tongue","舌頭","👅","身體"],
     ["Lips","嘴唇","💋","身體"],["Heart","心臟","🫀","身體"],["Brain","大腦","🧠","身體"],["Bone","骨頭","🦴","身體"],["Shoulder","肩膀","🤷","身體"],
     ["Knee","膝蓋","🦵","身體"],["Toe","腳趾","🦶","身體"],["Stomach","肚子","🤰","身體"],["Back","背","🔙","身體"],["Neck","脖子","🧣","身體"],
-
-    // 顏色與形狀
     ["Red","紅色","🔴","顏色"],["Blue","藍色","🔵","顏色"],["Yellow","黃色","🟡","顏色"],["Green","綠色","🟢","顏色"],["Orange","橘色","🟠","顏色"],
     ["Purple","紫色","🟣","顏色"],["Black","黑色","⚫","顏色"],["White","白色","⚪","顏色"],["Pink","粉紅色","💗","顏色"],["Brown","咖啡色","🟤","顏色"],
     ["Grey","灰色","🌫️","顏色"],["Gold","金色","🥇","顏色"],["Silver","銀色","🥈","顏色"],["Circle","圓形","⭕","形狀"],["Square","正方形","🟥","形狀"],
     ["Triangle","三角形","🔺","形狀"],["Star","星形","⭐","形狀"],["Heart","愛心","❤️","形狀"],["Diamond","鑽石形","🔶","形狀"],["Cross","十字","➕","形狀"],
-
-    // 數字
     ["One","一","1️⃣","數字"],["Two","二","2️⃣","數字"],["Three","三","3️⃣","數字"],["Four","四","4️⃣","數字"],["Five","五","5️⃣","數字"],
     ["Six","六","6️⃣","數字"],["Seven","七","7️⃣","數字"],["Eight","八","8️⃣","數字"],["Nine","九","9️⃣","數字"],["Ten","十","🔟","數字"],
     ["Zero","零","0️⃣","數字"],["Eleven","十一","1️⃣1️⃣","數字"],["Twelve","十二","1️⃣2️⃣","數字"],["Twenty","二十","2️⃣0️⃣","數字"],["Thirty","三十","3️⃣0️⃣","數字"],
     ["Hundred","一百","💯","數字"],["First","第一","🥇","數字"],["Second","第二","🥈","數字"],["Third","第三","🥉","數字"],
-
-    // 自然與天氣
     ["Sun","太陽","☀️","自然"],["Moon","月亮","🌙","自然"],["Star","星星","⭐","自然"],["Cloud","雲","☁️","自然"],["Rain","雨","🌧️","自然"],
     ["Snow","雪","❄️","自然"],["Wind","風","💨","自然"],["Tree","樹","🌳","自然"],["Flower","花","🌸","自然"],["Grass","草","🌿","自然"],
     ["Mountain","山","⛰️","自然"],["Sea","大海","🌊","自然"],["Fire","火","🔥","自然"],["Rainbow","彩虹","🌈","自然"],["Leaf","葉子","🍃","自然"],
     ["Stone","石頭","🪨","自然"],["Sand","沙子","🏖️","自然"],["Earth","地球","🌎","自然"],["Sky","天空","🌌","自然"],["River","河流","🏞️","自然"],
     ["Lightning","閃電","⚡","自然"],["Storm","暴風雨","⛈️","自然"],["Forest","森林","🌲","自然"],["Beach","海灘","🏖️","自然"],["Island","島嶼","🏝️","自然"],
     ["Planet","行星","🪐","自然"],["Space","太空","🚀","自然"],["Comet","彗星","☄️","自然"],["Volcano","火山","🌋","自然"],["Desert","沙漠","🏜️","自然"],
-
-    // 學校與物品
     ["Book","書","📖","學校"],["Pen","原子筆","🖊️","學校"],["Pencil","鉛筆","✏️","學校"],["Bag","書包","🎒","學校"],["Desk","書桌","🛋️","學校"],
     ["Chair","椅子","🪑","學校"],["Computer","電腦","💻","學校"],["Notebook","筆記本","📓","學校"],["Eraser","橡皮擦","🧱","學校"],["Ruler","尺","📏","學校"],
     ["Scissors","剪刀","✂️","學校"],["Glue","膠水","🧴","學校"],["Crayon","蠟筆","🖍️","學校"],["Paper","紙","📄","學校"],["Map","地圖","🗺️","學校"],
     ["Globe","地球儀","🌍","學校"],["Blackboard","黑板","🧑‍🏫","學校"],["School Bus","校車","🚌","學校"],["Calculator","計算機","🧮","學校"],["Paint","顏料","🎨","學校"],
     ["Brush","畫筆","🖌️","學校"],["Homework","作業","📚","學校"],["Student","學生","👨‍🎓","學校"],["Classroom","教室","🏫","學校"],["Bell","鈴","🔔","學校"],
-
-    // 生活與家裡
     ["Home","家","🏠","家裡"],["Bed","床","🛏️","家裡"],["Sofa","沙發","🛋️","家裡"],["TV","電視","📺","家裡"],["Lamp","檯燈","💡","家裡"],
     ["Table","桌子","🔲","家裡"],["Door","門","🚪","家裡"],["Window","窗戶","🪟","家裡"],["Key","鑰匙","🔑","家裡"],["Box","箱子","📦","家裡"],
     ["Clock","時鐘","⏰","家裡"],["Phone","電話","☎️","家裡"],["Mobile Phone","手機","📱","家裡"],["Camera","相機","📷","家裡"],["Battery","電池","🔋","家裡"],
@@ -295,26 +274,18 @@
     ["Pan","平底鍋","🍳","家裡"],["Knife","刀子","🔪","家裡"],["Fork","叉子","🍴","家裡"],["Spoon","湯匙","🥄","家裡"],["Chopsticks","筷子","🥢","家裡"],
     ["Cup","杯子","🥛","家裡"],["Plate","盤子","🍽️","家裡"],["Fridge","冰箱","🧊","家裡"],["Pillow","枕頭","🛌","家裡"],["Blanket","毯子","🧣","家裡"],
     ["Shampoo","洗髮精","🧴","家裡"],["Tissue","衛生紙","🧻","家裡"],["Umbrella","雨傘","☂️","家裡"],["Wallet","錢包","👛","家裡"],["Money","錢","💰","家裡"],
-
-    // 交通
     ["Car","汽車","🚗","交通"],["Bus","公車","🚌","交通"],["Train","火車","🚂","交通"],["Airplane","飛機","✈️","交通"],["Bike","腳踏車","🚲","交通"],
     ["Boat","船","🚢","交通"],["Subway","捷運","🚇","交通"],["Taxi","計程車","🚕","交通"],["Truck","卡車","🚚","交通"],["Motorcycle","摩托車","🏍️","交通"],
     ["Helicopter","直升機","🚁","交通"],["Rocket","火箭","🚀","交通"],["Ambulance","救護車","🚑","交通"],["Fire Truck","消防車","🚒","交通"],["Police Car","警車","🚓","交通"],
     ["Scooter","滑板車","🛴","交通"],["Ship","輪船","🛳️","交通"],["Tractor","拖拉機","🚜","交通"],["Van","廂型車","🚐","交通"],["Jeep","吉普車","🚙","交通"],
-    
-    // 衣物
     ["T-shirt","T恤","👕","衣物"],["Pants","褲子","👖","衣物"],["Dress","洋裝","👗","衣物"],["Skirt","裙子","👘","衣物"],["Shoes","鞋子","👟","衣物"],
     ["Socks","襪子","🧦","衣物"],["Hat","帽子","🧢","衣物"],["Coat","外套","🧥","衣物"],["Glasses","眼鏡","👓","衣物"],["Watch","手錶","⌚","衣物"],
     ["Ring","戒指","💍","衣物"],["Bag","包包","👜","衣物"],["Scarf","圍巾","🧣","衣物"],["Gloves","手套","🧤","衣物"],["Boot","靴子","👢","衣物"],
     ["Swimsuit","泳衣","🩱","衣物"],["Belt","皮帶","➰","衣物"],["Tie","領帶","👔","衣物"],["Mask","口罩","😷","衣物"],["Crown","皇冠","👑","衣物"],
-
-    // 地點
     ["School","學校","🏫","地點"],["Park","公園","⛲","地點"],["Zoo","動物園","🦁","地點"],["Hospital","醫院","🏥","地點"],["Store","商店","🏪","地點"],
     ["Supermarket","超市","🛒","地點"],["Restaurant","餐廳","🍴","地點"],["Library","圖書館","📚","地點"],["Airport","機場","✈️","地點"],["Station","車站","🚉","地點"],
     ["Farm","農場","🚜","地點"],["City","城市","🏙️","地點"],["Playground","遊樂場","🎠","地點"],["Cinema","電影院","🎬","地點"],["Hotel","飯店","🏨","地點"],
     ["Bank","銀行","🏦","地點"],["Post Office","郵局","📮","地點"],["Museum","博物館","🏛️","地點"],["Gym","體育館","🏋️","地點"],["Castle","城堡","🏰","地點"],
-
-    // 動作
     ["Run","跑","🏃","動作"],["Walk","走","🚶","動作"],["Jump","跳","🦘","動作"],["Sleep","睡覺","😴","動作"],["Eat","吃","🍽️","動作"],
     ["Drink","喝","🥤","動作"],["Read","閱讀","📖","動作"],["Write","寫字","✍️","動作"],["Sing","唱歌","🎤","動作"],["Dance","跳舞","💃","動作"],
     ["Swim","游泳","🏊","動作"],["Play","玩","🤹","動作"],["Fly","飛","🦅","動作"],["Sit","坐","🪑","動作"],["Stand","站","🧍","動作"],
@@ -322,8 +293,6 @@
     ["Smell","聞","👃","動作"],["Touch","摸","✋","動作"],["Think","想","🤔","動作"],["Cook","煮飯","🍳","動作"],["Wash","洗","🧼","動作"],
     ["Drive","開車","🚗","動作"],["Ride","騎","🚲","動作"],["Open","打開","🔓","動作"],["Close","關上","🔒","動作"],["Cut","剪/切","✂️","動作"],
     ["Draw","畫畫","🖍️","動作"],["Stop","停止","🛑","動作"],["Go","走/去","🟢","動作"],["Help","幫忙","🤝","動作"],["Give","給","🤲","動作"],
-    
-    // 感覺與形容詞
     ["Happy","快樂","😄","感覺"],["Sad","難過","😢","感覺"],["Angry","生氣","😠","感覺"],["Tired","累","😫","感覺"],["Hungry","餓","😋","感覺"],
     ["Thirsty","口渴","🥤","感覺"],["Cold","冷","🥶","感覺"],["Hot","熱","🥵","感覺"],["Love","愛","❤️","感覺"],["Scared","害怕","😱","感覺"],
     ["Surprised","驚訝","😲","感覺"],["Sick","生病","🤒","感覺"],["Sleepy","想睡","😪","感覺"],["Bored","無聊","😐","感覺"],["Excited","興奮","🤩","感覺"],
@@ -332,23 +301,15 @@
     ["Clean","乾淨","✨","形容詞"],["Dirty","髒","💩","形容詞"],["New","新","🆕","形容詞"],["Old","舊/老","👴","形容詞"],["Strong","強壯","💪","形容詞"],
     ["Weak","虛弱","🥀","形容詞"],["Fat","胖","🐷","形容詞"],["Thin","瘦","🥢","形容詞"],["Tall","高","🦒","形容詞"],["Sweet","甜","🍬","形容詞"],
     ["Sour","酸","🍋","形容詞"],["Spicy","辣","🌶️","形容詞"],["Loud","大聲","🔊","形容詞"],["Quiet","安靜","🤫","形容詞"],
-
-    // 時間
     ["Day","白天","☀️","時間"],["Night","晚上","🌙","時間"],["Morning","早上","🌅","時間"],["Afternoon","下午","🕑","時間"],["Evening","傍晚","🌆","時間"],
     ["Time","時間","⏳","時間"],["Year","年","📅","時間"],["Month","月","🗓️","時間"],["Week","週","📆","時間"],["Today","今天","👇","時間"],
     ["Tomorrow","明天","👉","時間"],["Yesterday","昨天","👈","時間"],["Birthday","生日","🎂","時間"],["Spring","春天","🌱","時間"],["Summer","夏天","☀️","時間"],
     ["Autumn","秋天","🍂","時間"],["Winter","冬天","☃️","時間"],["Now","現在","⏰","時間"],["Wait","等等","✋","時間"],["Clock","時鐘","🕰️","時間"],
-
-    // 樂器與運動
     ["Piano","鋼琴","🎹","樂器"],["Guitar","吉他","🎸","樂器"],["Drum","鼓","🥁","樂器"],["Violin","小提琴","🎻","樂器"],["Trumpet","小號","🎺","樂器"],
     ["Soccer","足球","⚽","運動"],["Basketball","籃球","🏀","運動"],["Baseball","棒球","⚾","運動"],["Tennis","網球","🎾","運動"],["Badminton","羽毛球","🏸","運動"],
     ["Volleyball","排球","🏐","運動"],["Ping Pong","桌球","🏓","運動"],["Swimming","游泳","🏊","運動"],["Running","跑步","🏃","運動"],["Skiing","滑雪","⛷️","運動"],
-    
-    // 節日
     ["Christmas","聖誕節","🎄","節日"],["Halloween","萬聖節","🎃","節日"],["New Year","新年","🎆","節日"],["Easter","復活節","🥚","節日"],["Birthday","生日","🎂","節日"],
     ["Party","派對","🎉","節日"],["Gift","禮物","🎁","節日"],["Balloon","氣球","🎈","節日"],["Firework","煙火","🎇","節日"],["Santa","聖誕老人","🎅","節日"],
-    
-    // 更多單字補齊至500
     ["Ghost","鬼","👻","萬聖節"],["Witch","女巫","🧙‍♀️","萬聖節"],["Pumpkin","南瓜","🎃","萬聖節"],["Skull","骷髏","💀","萬聖節"],
     ["Snowman","雪人","⛄","聖誕節"],["Reindeer","馴鹿","🦌","聖誕節"],["Sleigh","雪橇","🛷","聖誕節"],["Bell","鈴鐺","🔔","聖誕節"],
     ["Medal","獎牌","🏅","運動"],["Trophy","獎盃","🏆","運動"],["Goal","球門","🥅","運動"],["Bat","球棒","🏏","運動"],
@@ -357,7 +318,7 @@
     ["Mountain","山","⛰️","自然"],["Desert","沙漠","🏜️","自然"],["Bridge","橋","🌉","建築"],["Building","大樓","🏢","建築"],["House","房子","🏠","建築"]
   ];
 
-  // 2. 片語庫 (200 Phrases)
+  // 片語
   const rawPhrases = [
     ["Hello","你好","👋","問候"],["Good morning","早安","🌅","問候"],["Good night","晚安","🌙","問候"],["Goodbye","再見","👋","問候"],
     ["See you","待會見","👀","問候"],["Thank you","謝謝","🙏","禮貌"],["You're welcome","不客氣","😊","禮貌"],["Please","請","🤲","禮貌"],
@@ -402,10 +363,18 @@
     ["Listen to me","聽我說","👂","請求"],["Show me","秀給我看","👀","請求"],["Bring it","拿過來","🤲","請求"],["Take it","拿走","👋","請求"],
     ["Buy it","買下來","🛒","購物"],["Sell it","賣掉","💰","購物"],["Pay money","付錢","💵","購物"],["Keep change","不用找了","🪙","購物"],
     ["Too expensive","太貴了","💸","購物"],["Cheap","便宜","🏷️","購物"],["On sale","特價","🏷️","購物"],["Sold out","賣完了","🚫","購物"],
-    ["Open door","開門","🚪","動作"],["Close door","關門","🚪","動作"],["Turn light on","開燈","💡","動作"],["Turn light off","關燈","🌑","動作"]
+    ["Open door","開門","🚪","動作"],["Close door","關門","🚪","動作"],["Turn light on","開燈","💡","動作"],["Turn light off","關燈","🌑","動作"],
+    ["Wake up","起床","⏰","作息"],["Get up","起床","🛌","作息"],["Go out","出門","🚪","行動"],["Come back","回來","🏠","行動"],
+    ["Sit here","坐這裡","🪑","指令"],["Stand there","站那裡","🧍","指令"],["Be quiet","安靜","🤫","指令"],["Speak up","大聲點","📢","指令"],
+    ["Don't cry","別哭","😢","安慰"],["Don't laugh","別笑","😆","勸導"],["Don't move","別動","🛑","指令"],["Move it","移動它","📦","指令"],
+    ["Good boy","好男孩","👦","讚美"],["Good girl","好女孩","👧","讚美"],["Bad dog","壞狗狗","🐕","斥責"],["Good dog","乖狗狗","🐕","讚美"],
+    ["It's okay","沒關係","👌","安慰"],["It's fine","沒事","😊","安慰"],["It's good","很好","👍","評價"],["It's bad","不好","👎","評價"],
+    ["Too hot","太熱了","🥵","感覺"],["Too cold","太冷了","🥶","感覺"],["Too loud","太吵了","📢","感覺"],["Too quiet","太安靜","🤫","感覺"],
+    ["So far","好遠","🗺️","描述"],["So close","好近","📍","描述"],["So fast","好快","🚀","描述"],["So slow","好慢","🐢","描述"],
+    ["Come on","拜託/快點","🙏","語氣"],["Hold on","等一下","✋","語氣"],["Go away","走開","👋","語氣"],["Get out","出去","🚪","語氣"]
   ];
 
-  // 3. 句子庫 (200 Sentences)
+  // 句子
   const rawSentences = [
     ["I like apples.","我喜歡蘋果。","🍎","喜好"],["I like dogs.","我喜歡狗。","🐶","喜好"],["I like blue.","我喜歡藍色。","🔵","喜好"],["I love my mom.","我愛我媽媽。","👩","情感"],
     ["This is a cat.","這是一隻貓。","🐱","介紹"],["This is my book.","這是我的書。","📖","介紹"],["This is a pen.","這是一枝筆。","🖊️","介紹"],["That is a bird.","那是一隻鳥。","🐦","介紹"],
@@ -449,7 +418,13 @@
     ["I like to draw.","我喜歡畫畫。","🖍️","喜好"],["I like to read.","我喜歡看書。","📖","喜好"],["I like to swim.","我喜歡游泳。","🏊","喜好"],["I like to sing.","我喜歡唱歌。","🎤","喜好"],
     ["Draw a circle.","畫一個圓。","⭕","指令"],["Color it red.","把它塗成紅色。","🔴","指令"],["Count to ten.","數到十。","🔟","指令"],["Write your name.","寫下你的名字。","✍️","指令"],
     ["Clean the room.","打掃房間。","🧹","指令"],["Make the bed.","鋪床。","🛏️","指令"],["Help your mom.","幫你媽媽。","👩","指令"],["Share your toys.","分享你的玩具。","🧸","指令"],
-    ["Don't hit.","不可以打人。","🚫","禁令"],["Don't run.","不可以跑。","🚷","禁令"],["Be nice to friends.","對朋友要好。","🤝","勸導"],["Say thank you.","說謝謝。","🙏","勸導"]
+    ["Don't hit.","不可以打人。","🚫","禁令"],["Don't run.","不可以跑。","🚷","禁令"],["Be nice to friends.","對朋友要好。","🤝","勸導"],["Say thank you.","說謝謝。","🙏","勸導"],
+    ["Where is the cat?","貓在哪裡?","🐱","疑問"],["It is under the bed.","它在床底下。","🛏️","回答"],["It is on the table.","它在桌子上。","🔲","回答"],["It is in the box.","它在箱子裡。","📦","回答"],
+    ["The bird is singing.","鳥在唱歌。","🐦","描述"],["The cat is sleeping.","貓在睡覺。","🐱","描述"],["The dog is barking.","狗在叫。","🐕","描述"],["The fish is happy.","魚很快樂。","🐟","描述"],
+    ["I have a pen.","我有一枝筆。","🖊️","擁有"],["I have an apple.","我有一顆蘋果。","🍎","擁有"],["I have a book.","我有一本書。","📖","擁有"],["I have a bag.","我有一個書包。","🎒","擁有"],
+    ["Do you have a pet?","你有寵物嗎?","🐶","疑問"],["Yes, I have a dog.","有，我有一隻狗。","🐕","回答"],["No, I don't.","沒有，我沒有。","🙅","回答"],["Can I have one?","我可以有一個嗎?","🤲","請求"],
+    ["Give me five.","擊掌(給我五)。","✋","動作"],["Touch your nose.","摸你的鼻子。","👃","指令"],["Touch your head.","摸你的頭。","🙆","指令"],["Touch your toes.","摸你的腳趾。","🦶","指令"],
+    ["Clap your hands.","拍拍手。","👏","指令"],["Stomp your feet.","踏踏腳。","🦶","指令"],["Turn around.","轉一圈。","🔄","指令"],["Jump up high.","跳高高。","🦘","指令"]
   ];
 
   // 轉換資料格式
@@ -517,11 +492,11 @@
       
       // 動態調整字體大小 (句子要小一點)
       if(currentMode === 'sentences') {
-        wordEnEl.style.fontSize = data.en.length > 20 ? "24px" : "32px";
-        wordZhEl.style.fontSize = data.zh.length > 10 ? "30px" : "40px";
+        wordEnEl.style.fontSize = data.en.length > 20 ? "24px" : "28px";
+        wordZhEl.style.fontSize = data.zh.length > 10 ? "28px" : "32px";
       } else {
-        wordEnEl.style.fontSize = data.en.length > 12 ? "36px" : "42px";
-        wordZhEl.style.fontSize = "50px";
+        wordEnEl.style.fontSize = data.en.length > 12 ? "32px" : "36px";
+        wordZhEl.style.fontSize = "40px";
       }
     }, 200);
   }

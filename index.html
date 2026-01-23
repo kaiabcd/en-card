@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>兒童英語學習APP v2</title>
+<title>兒童英語學習APP</title>
 
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png">
 <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png">
@@ -140,7 +140,7 @@
 </head>
 <body oncontextmenu="return false;">
 
-  <h1>童英語學習卡</h1>
+  <h1>兒童英語學習</h1>
 
   <div class="tabs">
     <button class="tab-btn active" onclick="switchMode('words')">🔤 單字</button>
@@ -154,11 +154,12 @@
         <div class="category-tag" id="catTag">Category</div>
         <div class="emoji-img" id="cardEmoji">🍎</div>
         <div class="word-en" id="wordEn">Apple</div>
-        <button class="voice-btn" onclick="playAudio(event)">🔊</button>
+        <button class="voice-btn" onclick="playAudio(event, 'en')">🔊</button>
       </div>
       <div class="card__face card__face--back">
         <div class="emoji-img" id="cardEmojiBack">🍎</div>
         <div class="word-zh" id="wordZh">蘋果</div>
+        <button class="voice-btn" onclick="playAudio(event, 'zh')">🔊</button>
       </div>
     </div>
   </div>
@@ -629,7 +630,8 @@
   // 狀態管理
   let currentMode = 'words';
   let currentData = wordsData;
-  let currentIndex = 0;
+  // [修改 1] 初始載入時，直接設定為隨機索引，而不是 0
+  let currentIndex = Math.floor(Math.random() * currentData.length);
 
   // DOM 元素
   const cardElement = document.getElementById('card');
@@ -660,7 +662,6 @@
   // 切換模式
   function switchMode(mode) {
     currentMode = mode;
-    currentIndex = 0;
     
     // 更新按鈕樣式
     tabBtns.forEach(btn => btn.classList.remove('active'));
@@ -674,6 +675,9 @@
       currentData = sentencesData;
       tabBtns[2].classList.add('active');
     }
+    
+    // [修改 2] 切換分類時，也重新隨機抓取一張，而不是從 0 開始
+    currentIndex = Math.floor(Math.random() * currentData.length);
     
     updateCard();
   }
@@ -733,27 +737,42 @@
   }
 
   // 智慧語音播放功能
-  function playAudio(e) {
-    if(e) e.stopPropagation();
+  function playAudio(e, lang = 'en') {
+    if(e) e.stopPropagation(); // 防止點擊按鈕時卡片翻轉
+    
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      window.speechSynthesis.cancel(); // 先停止當前語音
       
       const data = currentData[currentIndex];
-      const utterance = new SpeechSynthesisUtterance(data.en);
+      // 判斷要唸中文還是英文
+      const text = lang === 'zh' ? data.zh : data.en; 
+      const utterance = new SpeechSynthesisUtterance(text);
       
-      // 尋找最佳發音 (Google > Samantha > Default)
-      const preferredVoice = voices.find(voice => voice.name === 'Google US English') ||
-                             voices.find(voice => voice.lang === 'en-US' && voice.name.includes('Google')) ||
-                             voices.find(voice => voice.name === 'Samantha') ||
-                             voices.find(voice => voice.lang === 'en-US');
+      if (lang === 'zh') {
+        // --- 中文發音設定 ---
+        // 優先找台灣繁體 (Google > Microsoft > 蘋果 > 任何中文)
+        const zhVoice = voices.find(v => v.lang === 'zh-TW' && v.name.includes('Google')) ||
+                        voices.find(v => v.lang === 'zh-TW') ||
+                        voices.find(v => v.lang.includes('zh'));
+        
+        if (zhVoice) utterance.voice = zhVoice;
+        utterance.lang = 'zh-TW';
+        utterance.rate = 0.9; // 中文語速
+        utterance.pitch = 1.0;
+        
+      } else {
+        // --- 英文發音設定 ---
+        const enVoice = voices.find(v => v.name === 'Google US English') ||
+                        voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+                        voices.find(v => v.name === 'Samantha') ||
+                        voices.find(v => v.lang === 'en-US');
 
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
+        if (enVoice) utterance.voice = enVoice;
+        utterance.lang = 'en-US';
+        // 句子稍微慢一點
+        utterance.rate = currentMode === 'sentences' ? 0.8 : 0.9; 
+        utterance.pitch = 1.05;
       }
-      
-      utterance.lang = 'en-US';
-      utterance.rate = currentMode === 'sentences' ? 0.8 : 0.9; 
-      utterance.pitch = 1.05; 
       
       window.speechSynthesis.speak(utterance);
     } else {
